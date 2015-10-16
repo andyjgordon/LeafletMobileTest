@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+
+<link rel="stylesheet" href="content/leaflet.css" />
+<link rel="stylesheet" href="content/site.css" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+
+
+<script src="scripts/leaflet.js"></script>
+
+</head>
+<body>
+
+<div id="map"></div>
+
+<script type="text/javascript">
+    
+    // initialize the map on the "map" div with a given center and zoom
+    var map = L.map('map');
+
+    //use osm mapping
+    //var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    //var osmAttrib = 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+    //var osm = new L.TileLayer(osmUrl, { minZoom: 8, maxZoom: 23, attribution: osmAttrib });
+	// map.addLayer(osm);
+	   
+	L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+		attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+		maxZoom: 18,
+		id: 'andrewgordon.nnfip7e9',
+		accessToken: 'pk.eyJ1IjoiYW5kcmV3Z29yZG9uIiwiYSI6ImNpZnRmNnF1ZDAxd3d0ZG0wMGQwOHFhengifQ.wO2Kai4PsjmJg5r_gCx5Yw'
+	}).addTo(map);
+
+    // start the map in Leeds
+    map.setView(new L.LatLng(53.83422, -1.66584), 12);
+	
+	var marker = L.marker([53.83422, -1.66584]).addTo(map);
+	
+	marker.bindPopup("<b>Work</b><br><h5>this is where the clever stuff happens</h5>").openPopup();
+	
+	var popup = L.popup();
+
+	function onMapClick(e) {
+		popup
+			.setLatLng(e.latlng)
+			.setContent("You clicked the map at " + e.latlng.toString())
+			.openOn(map);
+	}
+
+	map.on('click', onMapClick);
+	
+	//map.locate({setView: true, maxZoom: 16});
+	
+	function onLocationFound(e) {
+		var radius = e.accuracy / 2;
+
+		L.marker(e.latlng).addTo(map)
+			.bindPopup("You are within " + radius + " meters from this point").openPopup();
+
+		L.circle(e.latlng, radius).addTo(map);
+	}
+	
+	map.on('locationfound', onLocationFound);
+	
+	// custom zoom bar control that includes a Zoom Home function
+	L.Control.zoomHome = L.Control.extend({
+		options: {
+			position: 'topright',			
+			zoomHomeText: '<i class="fa fa-location-arrow" style="line-height:1.65;"></i>',
+			zoomHomeTitle: 'LOcate Me'
+		},
+		onAdd: function (map) {
+        var controlName = 'gin-control-zoom',
+            container = L.DomUtil.create('div', controlName + ' leaflet-bar'),
+            options = this.options;		
+
+       
+        this._zoomHomeButton = this._createButton(options.zoomHomeText, options.zoomHomeTitle,
+        controlName + '-home', container, this._zoomHome);      
+
+        //this._updateDisabled();
+        //map.on('zoomend zoomlevelschange', this._updateDisabled, this);
+
+        return container;
+		},		
+
+		_zoomHome: function (e) {
+			map.locate({setView: true, maxZoom: 16});
+		},
+		_createButton: function (html, title, className, container, fn) {
+			var link = L.DomUtil.create('a', className, container);
+			link.innerHTML = html;
+			link.href = '#';
+			link.title = title;
+
+			L.DomEvent.on(link, 'mousedown dblclick', L.DomEvent.stopPropagation)
+				.on(link, 'click', L.DomEvent.stop)
+				.on(link, 'click', fn, this)
+				.on(link, 'click', this._refocusOnMap, this);
+
+			return link;
+		}
+	});
+	
+	// add the new control to the map
+	var zoomHome = new L.Control.zoomHome();
+	zoomHome.addTo(map);
+
+	
+	
+</script>
+
+</body>
+</html>
